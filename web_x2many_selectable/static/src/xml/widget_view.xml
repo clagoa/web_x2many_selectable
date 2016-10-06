@@ -12,7 +12,7 @@
 		  <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu1">
 		    <t t-foreach="widget.actions" t-as="action">
 		    	<li>
-		    		<a href="#" t-att-class="action.class">
+		    		<a href="#" t-att-id="action.id">
 		    			<t t-esc="action.string" />
 		    		</a>
 		    	</li>

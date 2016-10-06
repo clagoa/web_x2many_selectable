@@ -26,9 +26,10 @@ odoo.define('web_x2many_selectable.form_widgets', function(require) {
 			if (node && node.attrs && node.attrs.actions) {
 				self.actions = JSON.parse(node.attrs.actions);	
 				_.each(self.actions, function(action) {
-					action.class = 'ep_button_' + action.name; 
+					action.id = _.uniqueId('ep_button_');
 				});
 			}	
+			this.id = _.uniqueId('x2manyselectable_');
 			
 			this._super.apply(this, arguments);
 		},
@@ -65,17 +66,23 @@ odoo.define('web_x2many_selectable.form_widgets', function(require) {
 		reload_current_view: function() {
 			var self = this;					
 			
-			if (this.view.get('actual_mode') == 'edit') {
+			if (this.view.get('actual_mode') == 'edit') {				
 				var $th_actions = this.$el.find('th.oe_list_record_delete').first();
-				if($th_actions && $th_actions.length == 1) {
-					$th_actions.append(QWeb.render("X2ManySelectable", {
+				var actions_exists = $th_actions.find('#' + self.id).length > 0;
+				if(!actions_exists && $th_actions && $th_actions.length == 1) {
+					
+					self.$button_el = $('<div id="' + self.id + '">');
+					self.$button_el.append(QWeb.render("X2ManySelectable", {
 						widget : this
 					}));
+					
 					_.each(self.actions, function(action){
-						self.$el.find("." + action.class).click(function() {
+						self.$button_el.find("#" + action.id).click(function() {
 							self.action_selected_lines(action);
 						});
-					});						
+					});	
+					
+					$th_actions.append(self.$button_el);
 				}
 			}			
 						
@@ -89,11 +96,14 @@ odoo.define('web_x2many_selectable.form_widgets', function(require) {
 				this.do_warn(_t("You must choose at least one record."));
 				return false;
 			}
-			var model_obj = new Model(this.dataset.model); 
 			
+			var model_obj = new Model(this.dataset.model); 			
 			model_obj.call(action.name, [ selected_ids ], {
 				context : self.dataset.context
 			}).then(function(result) {
+				if (action.reload && (action.reload === '1')) {
+					self.view.reload();
+				}
 			});
 		},
 		get_selected_ids_one2many : function() {
